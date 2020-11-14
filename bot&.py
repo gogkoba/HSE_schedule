@@ -83,8 +83,8 @@ def scheduler(n, t):
         else:
             return "На этой неделе нет пар"
 
-bot = Bot(token='1208501834:AAGzTte3AiykPaUz3VXZvux0br0b2tMf3So')
-updater = Updater(token='1208501834:AAGzTte3AiykPaUz3VXZvux0br0b2tMf3So')
+bot = Bot(token='')
+updater = Updater(token='')
 dp = updater.dispatcher
 
 def start(update, context):
