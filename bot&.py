@@ -1,3 +1,4 @@
+#Бот который запрашивает Имя фамилию, а затем выдает расписание
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 from telegram import Bot
 #from re2 import scheduler
