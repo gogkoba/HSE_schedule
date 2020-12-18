@@ -1,7 +1,7 @@
 #Бот который запрашивает Имя фамилию, а затем выдает расписание
+#Импортирую библиотеки
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 from telegram import Bot
-#from re2 import scheduler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import datetime
 import logging
@@ -9,31 +9,32 @@ import requests
 from bs4 import BeautifulSoup as bs
 import urllib
 
-def scheduler(n, t):
-    sched = ""
-    name= urllib.parse.quote(n)
-    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(name) + '&type=student' ).text
+
+def scheduler(n, t): #Функция, которая по имени n, и номеру нужного эффекта t выдает расписание. Раньше находилась в отдельном файле и импортировалась как библиотека
+    sched = "" # строка, куда позже добавляю ответ
+    name= urllib.parse.quote(n) #перевожу кириллицу в url
+    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(name) + '&type=student' ).text #получаю расписание определенного студента
     y = eval(y)
     id_u = y[0]["id"]
-    if t == 0:
-        sched+= 'Сегодня\n\n'
-        today = datetime.datetime.now()
-        d = today.day
-        m = today.month
+    if t == 0: #номер  эффекта t=0 значит - получение расписание на сегодня
+        sched+= 'Сегодня\n\n' #Добавляю в ответ "Сегодня" и пропускаю одну строку
+        today = datetime.datetime.now() #узнаю дату и время сейчас
+        d = today.day #обозначаю сегоднешний день как d
+        m = today.month #обозначаю сегоднешний месяц как m
 
-        if len(str(d)) == 1:
+        if len(str(d)) == 1:#привожу день к формату dd
             d = '0' + str(d)
-        if len(str(m)) == 1:
+        if len(str(m)) == 1:#привожу месяц к формату mm
             l = '0' + str(m)
-        today = str(today.year) + '.' + str(m) + '.' + str(d)
+        today = str(today.year) + '.' + str(m) + '.' + str(d)#собираю дату заново
 
-        r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) +'?start='+today+'&finish='+today+'&lng=1').json()
+        r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) +'?start='+today+'&finish='+today+'&lng=1').json()#получаю расписание определенного студента в определеннный день 
 
-        for i in r:
+        for i in r:#формирую расписание в нужном формате
             sched += (i["discipline"] + "  " + i['beginLesson'] + " - " + i["endLesson"] + "  " + "Аудитория:" + str(i['auditorium']) + "  " + str(i["url1"]) * (i["url1"] != None)) + "\n"
             sched += " " + "\n"
 
-        if sched != "":
+        if sched != "":#если в расписании ничего нет, вывожу "Сегодня нет пар"
             return sched
         else:
             return "Сегодня нет пар"
