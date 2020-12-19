@@ -39,30 +39,31 @@ def scheduler(n, t): #Функция, которая по имени n, и но�
         else:
             return "Сегодня нет пар"
 
-    if t == 1:
-        sched += 'Завтра\n\n'
-        today = datetime.datetime.now() + datetime.timedelta(days=t)
+    if t == 1:#номер  эффекта t=1 значит - получение расписание на завтра
+        sched += 'Завтра\n\n'#Добавляю в ответ "Сегодня" и пропускаю одну строку
+        today = datetime.datetime.now() + datetime.timedelta(days=t)#узнаю дату и время завтра
         d = today.day
         m = today.month
 
-        if len(str(d)) == 1:
+        if len(str(d)) == 1:#привожу день к формату dd
             d = '0' + str(d)
-        if len(str(m)) == 1:
+        if len(str(m)) == 1:#привожу месяц к формату mm
             l = '0' + str(m)
         today = str(today.year) + '.' + str(m) + '.' + str(d)
 
-        r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) +'?start='+today+'&finish='+today+'&lng=1').json()
+        r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) +'?start='+today+'&finish='+today+'&lng=1').json()#получаю расписание определенного студента в определеннный день 
 
-        for i in r:
+
+        for i in r:#формирую расписание в нужном формате
             sched += (i["discipline"] + "  " + i['beginLesson'] + " - " + i["endLesson"] + "  " + "Аудитория:" + str(i['auditorium']) + "  " + str(i["url1"]) * (i["url1"] != None)) + "\n"
             sched += " " + "\n"
 
-        if sched != "":
+        if sched != "":#если в расписании ничего нет, вывожу "Сегодня нет пар"
             return sched
         else:
-            return "Сегодня нет пар"
+            return "Завтра нет пар"
 
-    if t == 6:
+    if t == 6:#номер  эффекта t=6 значит - получение расписание на всю неделю, исключая прошедшие дни 
         date = datetime.datetime.now()
         t = 6 - datetime.datetime.weekday(date)
         for i in range (t+1):
