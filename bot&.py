@@ -64,19 +64,19 @@ def scheduler(n, t): #Функция, которая по имени n, и но�
             return "Завтра нет пар"
 
     if t == 6:#номер  эффекта t=6 значит - получение расписание на всю неделю, исключая прошедшие дни 
-        date = datetime.datetime.now()
-        t = 6 - datetime.datetime.weekday(date)
-        for i in range (t+1):
-            today = datetime.datetime.now() + datetime.timedelta(days=i)
+        date = datetime.datetime.now()#получаю сегодняшнюю дату и время
+        t = 6 - datetime.datetime.weekday(date)#определяю сколько осталось дней до конца недели
+        for i in range (t+1):#добавляю в рассписание каждый день по отдельности
+            today = datetime.datetime.now() + datetime.timedelta(days=i)#выбираю день
             d = today.day
             m = today.month
-            if len(str(d)) == 1:
+            if len(str(d)) == 1: #привожу день и месец к формату dd и mm
                 d = '0' + str(d)
             if len(str(m)) == 1:
                 l = '0' + str(m)
             today = str(today.year) + '.' + str(m) + '.' + str(d)
 
-            r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) + '?start=' + today + '&finish=' + today + '&lng=1').json()
+            r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) + '?start=' + today + '&finish=' + today + '&lng=1').json()#получаю расписание определенного студента в определеннный день 
 
             sched += today + ":" + "\n"
             for i in r:
@@ -86,22 +86,22 @@ def scheduler(n, t): #Функция, которая по имени n, и но�
         else:
             return "На этой неделе нет пар"
 
-bot = Bot(token='')
-updater = Updater(token='')
+bot = Bot(token='') #объявляю самого бота и выдаю ему токен
+updater = Updater(token='')#выдаю токен для обновлений
 dp = updater.dispatcher
 
-def start(update, context):
+def start(update, context):#функция start требующая информайию, кто, где и когда вызвал. Дает пояснение, как работает бот
     bot.sendMessage(update.effective_user.id, "Привет, напиши /crossroads Ф И для получения рассписания. Пожалуйста не забудь написать свое имя и фамилию после /crossroads")
 
-def crossroads(update, context: CallbackContext):
-    name = " ".join(context.args)
-    namer = urllib.parse.quote(name)
-    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(namer) + '&type=student').text
+def crossroads(update, context: CallbackContext):#основная функция, вызывает кнопки и записывет, что выбрал пользователь. Функция crossroads требующая информайию, кто, где и когда вызвал, а еще, что было написано после самой команды.
+    name = " ".join(context.args)#определяю имя. имя - то, что было после самой команды
+    namer = urllib.parse.quote(name)#перевожу имя url
+    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(namer) + '&type=student').text#получаю рассписание студента
     y = eval(y)
-    if y == []:
+    if y == []:#Если рассписание пустое, то прошу повторно отправить имя и фамилию
         bot.sendMessage(update.effective_user.id, "А я вас не знаю, попробуйте снова")
         return "остановка"
-    if name != "":
+    if name != "":#Если имя не отсутствует. Вывожу кнопки и добаляю, выбор пользователя в callback_data
         bot.sendMessage(update.effective_user.id,name)
         keyboard = [
 
@@ -112,16 +112,16 @@ def crossroads(update, context: CallbackContext):
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text('Получить расписание на:', reply_markup=reply_markup)
-    else:
+    else:#Если имени нет, прошу заново запустить команду
         bot.sendMessage(update.effective_user.id,"Вы кажется забыли представиться. Напишите команду заново с фамилией и именем")
 
-def button(update, context: CallbackContext):
+def button(update, context: CallbackContext):#функция, рассматривающая CallbackContext и вызывающая функцию scheduler в нужном формате
     query = update.callback_query
     query.answer()
     query.edit_message_text(scheduler(query.data[1:len(query.data)], int(query.data[0])))
 
-dp.add_handler(CommandHandler("start", start))
-dp.add_handler(CommandHandler("crossroads", crossroads))
+dp.add_handler(CommandHandler("start", start))#добавляю боту команду start
+dp.add_handler(CommandHandler("crossroads", crossroads))#добавляю боту команду crossroads
 updater.dispatcher.add_handler(CallbackQueryHandler(button))
 updater.start_polling()
 updater.idle()
