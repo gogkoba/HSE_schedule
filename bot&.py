@@ -3,6 +3,7 @@
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 from telegram import Bot
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from pathlib import Path
 import datetime
 import logging
 import requests
@@ -18,6 +19,7 @@ def scheduler(n, t):
     :return: расписание. Строка
     """
     sched = ""# строка, куда позже добавляю ответ
+    data = ""
     name= urllib.parse.quote(n) #перевожу кириллицу в url
     y = requests.get('https://ruz.hse.ru/api/search?term=' + str(name) + '&type=student' ).json()#получаю данные определенного студента
     id_u = y[0]["id"]#нахожу в данных id студента
@@ -43,10 +45,13 @@ def scheduler(n, t):
             sched += (i["discipline"] + "  " + i['beginLesson'] + " - " + i["endLesson"] + "  " + "Аудитория:" + str(i['auditorium']) + "  " + str(i["url1"]) * (i["url1"] != None)) + "\n"
             sched += " " + "\n"
 
-        if sched != "":#если в расписании ничего нет, вывожу "Сегодня нет пар"
+        if sched != "Сегодня\n\n" or sched != "'Завтра\n\n'":#если в расписании ничего нет, вывожу "Сегодня нет пар" или "Завтра нет пар"
             return sched
         else:
-            return "Сегодня нет пар"
+            if t == 0:
+                return "Сегодня нет пар"
+            else:
+                return "Завтра нет пар"
 
     if t == 6 or t == 7:#если эффект = 6 или 7, значит выводим неделю день 6 - эта неделя. 7 - следующая
         date = datetime.datetime.now()
@@ -54,9 +59,9 @@ def scheduler(n, t):
         if t == 6:
             t = 6 - datetime.datetime.weekday(date)
         if t == 7:
-            t = 6
+            te = 6
 
-        for i in range (t+1):#добавляю в рассписание каждый день по отдельности
+        for i in range (te+1):#добавляю в рассписание каждый день по отдельности
 
             today = datetime.datetime.now() + datetime.timedelta(days=i)
             if t == 7:
@@ -73,16 +78,18 @@ def scheduler(n, t):
             r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) + '?start=' + today + '&finish=' + today + '&lng=1').json()
 
             sched += today + ":" + "\n"
+
+            data += today + ":" + "\n"
             for i in r:
                 sched += (i["discipline"] + "  " + i['beginLesson'] + " - " + i["endLesson"] + "  " + "Аудитория:" + str(i['auditorium']) + "  " + str(i["url1"]) * (i["url1"] != None)) + "\n" + "\n"
-        if sched != "":
+        if sched != data:
             return sched
         else:
             return "На этой неделе нет пар"
 
 
-bot = Bot(token='') #объявляю самого бота и выдаю ему токен
-updater = Updater(token='')#выдаю токен для обновлений
+bot = Bot(token=Path('token.txt').read_text().strip()) #объявляю самого бота и выдаю ему токен
+updater = Updater(token=Path('token.txt').read_text().strip())#выдаю токен для обновлений
 dp = updater.dispatcher
 
 def start(update, context):#функция start требующая информайию, кто, где и когда вызвал. Дает пояснение, как работает бот
@@ -96,10 +103,10 @@ def start(update, context):#функция start требующая информ
 
 def crossroads(update, context: CallbackContext):#основная функция, вызывает кнопки и записывет, что выбрал пользователь. Функция crossroads требующая информайию, кто, где и когда вызвал, а еще, что было написано после самой команды.
     """
-    Функция вызывающая в чат кнопки, считывающаяя их и проверяющаяя существует ли пользователь 
-    :param update:  параметры чата
-    :param context: параметры сообщения в чате. Конкретно, что было написано после самой команды
-    :return: сообщение в чате и callback_data
+
+    :param update:
+    :param context:
+    :return:
     """
     name = " ".join(context.args)#определяю имя. имя - то, что было после самой команды
     namer = urllib.parse.quote(name)#перевожу имя url
@@ -122,12 +129,12 @@ def crossroads(update, context: CallbackContext):#основная функци�
     else:#Если имени нет, прошу заново запустить команду
         bot.sendMessage(update.effective_user.id,"Вы кажется забыли представиться. Напишите команду заново с фамилией и именем")
 
-def button(update, context: CallbackContext):
+def button(update, context: CallbackContext):#функция, рассматривающая CallbackContext и вызывающая функцию scheduler в нужном формате
     """
-    Функция обрабатывающая CallbackContext и вызывающаяя scheduler в нужном формате
-    :param update:  параметры чата
-    :param context: параметры сообщения в чате
-    :return: сообщение в чате
+
+    :param update:
+    :param context:
+    :return:
     """
     query = update.callback_query
     query.answer()
