@@ -104,9 +104,9 @@ def start(update, context):#функция start требующая информ
 def crossroads(update, context: CallbackContext):#основная функция, вызывает кнопки и записывет, что выбрал пользователь. Функция crossroads требующая информайию, кто, где и когда вызвал, а еще, что было написано после самой команды.
     """
 
-    :param update:
-    :param context:
-    :return:
+    :param update: параметры чата
+    :param context: параметры сообщения в чате
+    :return: CallbackContext и сообщение в чат
     """
     name = " ".join(context.args)#определяю имя. имя - то, что было после самой команды
     namer = urllib.parse.quote(name)#перевожу имя url
@@ -132,9 +132,9 @@ def crossroads(update, context: CallbackContext):#основная функци�
 def button(update, context: CallbackContext):#функция, рассматривающая CallbackContext и вызывающая функцию scheduler в нужном формате
     """
 
-    :param update:
-    :param context:
-    :return:
+    :param update:  параметры чата
+    :param context: параметры сообщения в чате
+    :return: сообщение чата
     """
     query = update.callback_query
     query.answer()
