@@ -1,4 +1,5 @@
-#Бот который запрашивает Имя фамилию, а затем выдает расписание
+#Бот который запрашивает Имя фамилию, а затем выдает расписание#Телеграм бот, который запрашивает Имя фамилию, а затем выдает расписание
+#Бот тут >> @schedule_master_bot
 #Импортирую библиотеки
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 from telegram import Bot
@@ -18,11 +19,11 @@ def scheduler(n, t):
     :param t: номер эффекта. Число
     :return: расписание. Строка
     """
-    sched = ""# строка, куда позже добавляю ответ
+    sched = "" # строка, куда позже добавляю ответ
     data = ""
     name= urllib.parse.quote(n) #перевожу кириллицу в url
-    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(name) + '&type=student' ).json()#получаю данные определенного студента
-    id_u = y[0]["id"]#нахожу в данных id студента
+    y = requests.get('https://ruz.hse.ru/api/search?term=' + str(name) + '&type=student' ).json() #получаю данные определенного студента
+    id_u = y[0]["id"] #нахожу в данных id студента
 
     if t < 6 :#если эффект < 6, значит выводим один день
         if t == 0:#если 0 - значит сегодня
@@ -36,7 +37,7 @@ def scheduler(n, t):
         if len(str(d)) == 1:
             d = '0' + str(d)
         if len(str(m)) == 1:
-            l = '0' + str(m)
+            m = '0' + str(m)
         today = str(today.year) + '.' + str(m) + '.' + str(d)#привожу today к нужному формату
 
         r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) +'?start='+today+'&finish='+today+'&lng=1').json()#получаю расписание определенного студента в определеннный день
@@ -59,9 +60,9 @@ def scheduler(n, t):
         if t == 6:
             t = 6 - datetime.datetime.weekday(date)
         if t == 7:
-            te = 6
+            t = 6
 
-        for i in range (te+1):#добавляю в рассписание каждый день по отдельности
+        for i in range (t+1):#добавляю в рассписание каждый день по отдельности
 
             today = datetime.datetime.now() + datetime.timedelta(days=i)
             if t == 7:
@@ -72,7 +73,7 @@ def scheduler(n, t):
             if len(str(d)) == 1:
                 d = '0' + str(d)
             if len(str(m)) == 1:
-                l = '0' + str(m)
+                m = '0' + str(m)
             today = str(today.year) + '.' + str(m) + '.' + str(d)
 
             r = requests.get('https://ruz.hse.ru/api/schedule/student/' + str(id_u) + '?start=' + today + '&finish=' + today + '&lng=1').json()
@@ -106,7 +107,7 @@ def crossroads(update, context: CallbackContext):#основная функци�
 
     :param update: параметры чата
     :param context: параметры сообщения в чате
-    :return: CallbackContext и сообщение в чат
+    :return:
     """
     name = " ".join(context.args)#определяю имя. имя - то, что было после самой команды
     namer = urllib.parse.quote(name)#перевожу имя url
@@ -132,9 +133,9 @@ def crossroads(update, context: CallbackContext):#основная функци�
 def button(update, context: CallbackContext):#функция, рассматривающая CallbackContext и вызывающая функцию scheduler в нужном формате
     """
 
-    :param update:  параметры чата
+    :param update: параметры чата
     :param context: параметры сообщения в чате
-    :return: сообщение чата
+    :return:
     """
     query = update.callback_query
     query.answer()
